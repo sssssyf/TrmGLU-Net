@@ -8,7 +8,7 @@ import torch
 
 import scipy.io as sio
 from sklearn.decomposition import PCA
-from uformer_pytorch import Uformer
+from uformer_nofusion import Uformer
 
 from sklearn.metrics import cohen_kappa_score
 
@@ -72,14 +72,14 @@ def run(dataname = 'IP', data_path = './image', slic_path = './slic_optimal.npy'
             image1 = sio.loadmat(file_name)
             image1 = image1[list(image1)[-1]]
             image1=image1.reshape(-1,103)
-            pca=PCA(3)
-            y=pca.fit(image1)
-            image1=y.transform(image1)
+            #pca=PCA(3)
+            #y=pca.fit(image1)
+            #image1=y.transform(image1)
             m,n=image1.max(),image1.min()
             image1=(image1-n)/(m-n)
             image1 = image1.reshape(610,340,-1)
-            image = np.zeros((640,384,3),dtype = np.float32)
-            for i in range(3):
+            image = np.zeros((640,384,103),dtype = np.float32)
+            for i in range(103):
                 temp = np.pad(image1[:,:,i],((0,30),(0,44)),'symmetric')
                 image[:,:,i] = temp
             image1 = image
@@ -229,7 +229,7 @@ def run(dataname = 'IP', data_path = './image', slic_path = './slic_optimal.npy'
                 heads = 8,
                 ff_mult = 4,
                 output_channels = mod_dim2,
-                input_channels=3).to(device)
+                input_channels=103).to(device)
         elif dataname == 'SA':
             mod_dim2 =16
             model = Uformer(
@@ -497,9 +497,9 @@ if __name__ == '__main__':
     for n in slice_n:
         print('processing ' + str(n))
         if n == 0:
-            run(dataname='PU', data_path='/home/liubing/liubing_code/HSI_data', slic_path=None, segments=0,augment=False, save_path='./PU_results_augment', model_name='Uformer')
+            run(dataname='PU', data_path='/HSI_data', slic_path=None, segments=0,augment=False, save_path='./PU_results_augment', model_name='Uformer')
         else:
-            run(dataname='PU', data_path='/home/liubing/liubing_code/HSI_data', slic_path=path + '/PU_slic_' + str(n) +'.npy', segments=n,augment=True, save_path='./PU_results_augment', model_name='Uformer')
+            run(dataname='PU', data_path='/HSI_data', slic_path=path + '/PU_slic_' + str(n) +'.npy', segments=n,augment=True, save_path='./PU_results_augment', model_name='Uformer')
 
         '''
         elif 'PU' in n:
